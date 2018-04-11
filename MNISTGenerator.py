@@ -9,7 +9,7 @@ import tensorflow as tf
 # Modified from https://stanford.edu/~shervine/blog/keras-how-to-generate-data-on-the-fly.html
 class DataGenerator(keras.utils.Sequence):
     'Generates data for Keras'
-    def __init__(self, x_train, y_train, num_classes, base_network, batch_size=100, useSemiHardTriplets = False):
+    def __init__(self, x_train, y_train, num_classes, base_network, batch_size=100, useSemiHardPos = False, useSemiHardNeg = False):
         'Initialization'
         '''
         Generator assumes: 
@@ -24,7 +24,8 @@ class DataGenerator(keras.utils.Sequence):
         self.num_classes = num_classes
         self.base_network = base_network
         self.graph = tf.get_default_graph()
-        self.useSemiHardTriplets = useSemiHardTriplets
+        self.useSemiHardPos = useSemiHardPos
+        self.useSemiHardNeg = useSemiHardNeg
 
     def __len__(self):
         'Denotes the number of batches per epoch'
@@ -38,16 +39,21 @@ class DataGenerator(keras.utils.Sequence):
 
         curX = self.x_train[startIdx:endIdx,:,:]
         curY = self.y_train[startIdx:endIdx]
-        
-        if self.useSemiHardTriplets == True:
+
+        if (self.useSemiHardPos or self.useSemiHardNeg):
             with self.graph.as_default():
                 curX_Feat = self.GetFeatMatrix(curX, self.base_network, -1, normalize=False)
             pairDists = sp.spatial.distance.pdist(curX_Feat)
             pairDistMat = sp.spatial.distance.squareform(pairDists)
+        
+        if self.useSemiHardPos:
             posX = self.GetHard(curX, curX_Feat, pairDistMat, curY, 'pos')
-            negX = self.GetHard(curX, curX_Feat, pairDistMat, curY, 'neg')
         else:
             posX = self.GetRand(curX, curY, 'pos')
+        
+        if self.useSemiHardNeg:
+            negX = self.GetHard(curX, curX_Feat, pairDistMat, curY, 'neg')
+        else:
             negX = self.GetRand(curX, curY, 'neg')
         
         X = [curX, posX, negX]
