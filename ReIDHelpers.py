@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 
 from keras import backend as K
 
-from ViewMNIST import GetPlotImage
+from ViewMNIST import PlotResult
 
 def GetFeature(x, functor, saveIdx, normalize=False):
     embedding = None
@@ -43,8 +43,6 @@ def GetRank1Accuracy(probe, pLabel, gallery, gLabel, galleryClr, base_network, s
     
     rank1 = (TP/dist.shape[1] * 100)
     if (saveFigName is not None):
-        img, min_xy, max_xy = GetPlotImage(galleryClr, galleryFeat)
-        plt.imshow(img,extent=[min_xy[0], max_xy[0], min_xy[1], max_xy[1]])
-        plt.savefig(saveFigName,dpi=200)
+        PlotResult(galleryClr, galleryFeat, False, saveFigName)
     
     return rank1

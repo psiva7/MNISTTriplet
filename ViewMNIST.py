@@ -38,3 +38,11 @@ def GetPlotImage(images, xy, canvas_shape = (1024,1024,3)):
 
 def map_range(x, in_min, in_max, out_min, out_max):
     return out_min + (out_max - out_min) * (x - in_min) / (in_max - in_min)
+
+def PlotResult(galleryClr, galleryFeat, showPlot = False, saveFigName = None):
+    img, min_xy, max_xy = GetPlotImage(galleryClr, galleryFeat)
+    plt.imshow(img,extent=[min_xy[0], max_xy[0], min_xy[1], max_xy[1]])
+    if (showPlot == True):
+        plt.show()
+    if (saveFigName is not None):
+        plt.savefig(saveFigName,dpi=200)
