@@ -9,6 +9,7 @@ from keras.utils import plot_model
 from MNISTGenerator import DataGenerator
 
 from ViewMNIST import GetClrImgs
+from ViewMNIST import PlotResult
 
 from TripletNetwork import create_triplet_network
 from TripletNetwork import tripletLoss
@@ -19,6 +20,7 @@ from IDNetwork import create_id_network
 from MNISTHelpers import get_reid_test_data, get_train_data, get_num_classes
 
 from ReIDHelpers import GetRank1Accuracy
+from ReIDHelpers import GetFeatMatrix
 
 num_classes = get_num_classes()
 
@@ -38,6 +40,7 @@ def create_base_network(input_shape):
 
 # Get the training and testing data
 x_train, y_train = get_train_data()
+x_trainClr = GetClrImgs(x_train, y_train)
 
 probe, pLabel, gallery, gLabel = get_reid_test_data()
 galleryClr = GetClrImgs(gallery, gLabel)
@@ -61,6 +64,9 @@ IDModel.fit(x=x_train, y=one_hot_labels, batch_size=100, epochs=epochs)
 
 tripletRank1 = GetRank1Accuracy(probe, pLabel, gallery, gLabel, galleryClr, base_network_for_ID, saveIdx=-1, saveFigName="ID.png", normalize = False)
 tripletNormRank1 = GetRank1Accuracy(probe, pLabel, gallery, gLabel, galleryClr, base_network_for_ID, saveIdx=-1, saveFigName="IDNorm.png", normalize = True)
+
+trainFeat = GetFeatMatrix(x_train, base_network_for_ID, -1, False)
+PlotResult(x_trainClr, trainFeat, False, "IDTrain.png")
 
 print('\n\n' + str(tripletRank1) + ',' + str(tripletNormRank1))
 with open("result.txt", "a") as myfile:
@@ -89,6 +95,9 @@ modelRandTriplet.fit_generator(generator=training_generator,
 
 tripletRank1 = GetRank1Accuracy(probe, pLabel, gallery, gLabel, galleryClr, base_network, saveIdx=-1, saveFigName="RandTrip.png", normalize = False)
 tripletNormRank1 = GetRank1Accuracy(probe, pLabel, gallery, gLabel, galleryClr, base_network, saveIdx=-1, saveFigName="RandTripNorm.png", normalize = True)
+
+trainFeat = GetFeatMatrix(x_train, base_network, -1, False)
+PlotResult(x_trainClr, trainFeat, False, "RandTripTrain.png")
 
 print('\n\n' + str(tripletRank1) + ',' + str(tripletNormRank1))
 with open("result.txt", "a") as myfile:
@@ -120,6 +129,9 @@ modelRandTriplet2.fit_generator(generator=training_generator,
 
 tripletRank1 = GetRank1Accuracy(probe, pLabel, gallery, gLabel, galleryClr, base_network2, saveIdx=-1, saveFigName="SemiHardTrip.png", normalize = False)
 tripletNormRank1 = GetRank1Accuracy(probe, pLabel, gallery, gLabel, galleryClr, base_network2, saveIdx=-1, saveFigName="SemiHardTripNorm.png", normalize = True)
+
+trainFeat = GetFeatMatrix(x_train, base_network2, -1, False)
+PlotResult(x_trainClr, trainFeat, False, "SemiHardTripTrain.png")
 
 print('\n\n' + str(tripletRank1) + ',' + str(tripletNormRank1))
 with open("result.txt", "a") as myfile:
