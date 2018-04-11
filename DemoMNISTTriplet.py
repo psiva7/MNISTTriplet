@@ -37,12 +37,12 @@ def create_base_network(input_shape):
 
 
 # Get the training and testing data
-x_train2, y_train2 = get_train_data()
+x_train, y_train = get_train_data()
 
 probe, pLabel, gallery, gLabel = get_reid_test_data()
 galleryClr = GetClrImgs(gallery, gLabel)
 
-input_shape = x_train2.shape[1:]
+input_shape = x_train.shape[1:]
 
 
 # ID network test
@@ -56,8 +56,8 @@ learningRate = 0.002
 beta1 = 0.9
 beta2 = 0.999
 IDModel.compile(loss=keras.losses.categorical_crossentropy, optimizer=Adam(lr=learningRate, beta_1=beta1, beta_2=beta2), metrics=['accuracy'])
-one_hot_labels = keras.utils.to_categorical(y_train2, num_classes=10)
-IDModel.fit(x=x_train2, y=one_hot_labels, batch_size=100, epochs=epochs)
+one_hot_labels = keras.utils.to_categorical(y_train, num_classes=10)
+IDModel.fit(x=x_train, y=one_hot_labels, batch_size=100, epochs=epochs)
 
 tripletRank1 = GetRank1Accuracy(probe, pLabel, gallery, gLabel, galleryClr, base_network_for_ID, saveIdx=-1, saveFigName="ID.png", normalize = False)
 tripletNormRank1 = GetRank1Accuracy(probe, pLabel, gallery, gLabel, galleryClr, base_network_for_ID, saveIdx=-1, saveFigName="IDNorm.png", normalize = True)
@@ -81,7 +81,7 @@ beta2 = 0.999
 modelRandTriplet.compile(loss=tripletLoss, optimizer=Adam(lr=learningRate, beta_1=beta1, beta_2=beta2), metrics=[tripletAccuracy])
 
 bSize = 100
-training_generator = DataGenerator(x_train2, y_train2, num_classes, base_network, bSize, False, False)
+training_generator = DataGenerator(x_train, y_train, num_classes, base_network, bSize, False, False)
 modelRandTriplet.fit_generator(generator=training_generator,
             steps_per_epoch=training_generator.__len__(),
             epochs = epochs,
@@ -112,7 +112,7 @@ beta2 = 0.999
 modelRandTriplet2.compile(loss=tripletLoss, optimizer=Adam(lr=learningRate, beta_1=beta1, beta_2=beta2), metrics=[tripletAccuracy])
 
 bSize = 100
-training_generator = DataGenerator(x_train2, y_train2, num_classes, base_network2, bSize, True, False)
+training_generator = DataGenerator(x_train, y_train, num_classes, base_network2, bSize, True, False)
 modelRandTriplet2.fit_generator(generator=training_generator,
             steps_per_epoch=training_generator.__len__(),
             epochs = epochs,
