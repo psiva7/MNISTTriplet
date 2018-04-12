@@ -9,7 +9,7 @@ import tensorflow as tf
 # Modified from https://stanford.edu/~shervine/blog/keras-how-to-generate-data-on-the-fly.html
 class DataGenerator(keras.utils.Sequence):
     'Generates data for Keras'
-    def __init__(self, x_train, y_train, num_classes, base_network, batch_size=100, useSemiHardPos = False, useSemiHardNeg = False):
+    def __init__(self, x_train, y_train, num_classes, base_network, batch_size=100, useSemiHardPos = False, useSemiHardNeg = False, topPCT = 1.0):
         'Initialization'
         '''
         Generator assumes: 
@@ -26,6 +26,7 @@ class DataGenerator(keras.utils.Sequence):
         self.graph = tf.get_default_graph()
         self.useSemiHardPos = useSemiHardPos
         self.useSemiHardNeg = useSemiHardNeg
+        self.topPCT = topPCT
 
     def __len__(self):
         'Denotes the number of batches per epoch'
@@ -83,10 +84,8 @@ class DataGenerator(keras.utils.Sequence):
         idx = []
         for i in range(0,curX.shape[0]):
             srcClsIdx = curY[i]
-            maxDist = 0
-            maxDistIdx = -1
-            minDist = 0
-            minDistIdx = -1
+            distList = []
+            distIdxList = []
             for j in range(0, curX.shape[0]):
                 curClsIdx = curY[j]
                 if i == j:
@@ -96,16 +95,20 @@ class DataGenerator(keras.utils.Sequence):
                 if pairType == 'neg' and srcClsIdx == curClsIdx:
                     continue
                 dist = pairDistMat[i,j]
-                if maxDist < dist or maxDistIdx < 0:
-                    maxDist = dist
-                    maxDistIdx = j
-                if minDist > dist or minDistIdx < 0:
-                    minDist = dist
-                    minDistIdx = j
-            if pairType == 'pos':
-                idx.append(maxDistIdx)
+                distList.append(dist)
+                distIdxList.append(j)
+            distList = np.array(distList)
+            distIdxList = np.array(distIdxList)
+            locs = np.argsort(distList)
+            if (self.topPCT <= 0 or self.topPCT > 1.0):
+                randIdx = 0
             else:
-                idx.append(minDistIdx)
+                upperBound = max(1,int(len(locs)*self.topPCT+0.5))
+                randIdx = np.random.randint(0, upperBound)
+            if pairType == 'pos':
+                idx.append(distIdxList[locs[-(randIdx+1)]])
+            else:
+                idx.append(distIdxList[locs[randIdx]])
         posImg = curX[idx,:,:]
         return posImg
     

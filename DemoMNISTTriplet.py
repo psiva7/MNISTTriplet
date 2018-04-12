@@ -47,7 +47,7 @@ galleryClr = GetClrImgs(gallery, gLabel)
 
 input_shape = x_train.shape[1:]
 
-
+'''
 # ID network test
 base_network_for_ID = create_base_network(input_shape)
 
@@ -71,7 +71,7 @@ PlotResult(x_trainClr, trainFeat, False, "IDTrain.png")
 print('\n\n' + str(tripletRank1) + ',' + str(tripletNormRank1))
 with open("result.txt", "a") as myfile:
     myfile.write('ID,' + str(tripletRank1) + ',' + str(tripletNormRank1) + '\n')
-
+'''
 
 
 # Triplet Network with random triplets
@@ -80,7 +80,7 @@ base_network = create_base_network(input_shape)
 modelRandTriplet = create_triplet_network(input_shape, base_network)
 #plot_model(modelRandTriplet, to_file='RandTripletNetwork.png', show_shapes='True')
 
-epochs = 10
+epochs = 3
 learningRate = 0.002
 beta1 = 0.9
 beta2 = 0.999
@@ -105,34 +105,70 @@ with open("result.txt", "a") as myfile:
 
 
 
-# Triplet Network with hard triplets
-base_network2 = create_base_network(input_shape)
+# Triplet Network with random triplets
+base_networkT = create_base_network(input_shape)
 
-for i in range(0,len(base_network.layers)):
-    base_network2.layers[i].set_weights(base_network.layers[i].get_weights())
+modelRandTriplet = create_triplet_network(input_shape, base_networkT)
+#plot_model(modelRandTriplet, to_file='RandTripletNetwork.png', show_shapes='True')
 
-modelRandTriplet2 = create_triplet_network(input_shape, base_network2)
-#plot_model(modelRandTriplet2, to_file='SemiHardTripletNetwork.png', show_shapes='True')
-
-epochs = 1
+epochs = 3
 learningRate = 0.002
 beta1 = 0.9
 beta2 = 0.999
-modelRandTriplet2.compile(loss=tripletLoss, optimizer=Adam(lr=learningRate, beta_1=beta1, beta_2=beta2), metrics=[tripletAccuracy])
+modelRandTriplet.compile(loss=tripletLoss, optimizer=Adam(lr=learningRate, beta_1=beta1, beta_2=beta2), metrics=[tripletAccuracy])
 
 bSize = 100
-training_generator = DataGenerator(x_train, y_train, num_classes, base_network2, bSize, True, False)
-modelRandTriplet2.fit_generator(generator=training_generator,
+training_generator = DataGenerator(x_train, y_train, num_classes, base_networkT, bSize, True, True, 1.0)
+modelRandTriplet.fit_generator(generator=training_generator,
             steps_per_epoch=training_generator.__len__(),
             epochs = epochs,
             use_multiprocessing=False, shuffle=True)
 
-tripletRank1 = GetRank1Accuracy(probe, pLabel, gallery, gLabel, galleryClr, base_network2, saveIdx=-1, saveFigName="SemiHardTrip.png", normalize = False)
-tripletNormRank1 = GetRank1Accuracy(probe, pLabel, gallery, gLabel, galleryClr, base_network2, saveIdx=-1, saveFigName="SemiHardTripNorm.png", normalize = True)
+tripletRank1 = GetRank1Accuracy(probe, pLabel, gallery, gLabel, galleryClr, base_networkT, saveIdx=-1, saveFigName="RandTripT.png", normalize = False)
+tripletNormRank1 = GetRank1Accuracy(probe, pLabel, gallery, gLabel, galleryClr, base_networkT, saveIdx=-1, saveFigName="RandTripNormT.png", normalize = True)
 
-trainFeat = GetFeatMatrix(x_train, base_network2, -1, False)
-PlotResult(x_trainClr, trainFeat, False, "SemiHardTripTrain.png")
+trainFeat = GetFeatMatrix(x_train, base_networkT, -1, False)
+PlotResult(x_trainClr, trainFeat, False, "RandTripTrainT.png")
 
 print('\n\n' + str(tripletRank1) + ',' + str(tripletNormRank1))
 with open("result.txt", "a") as myfile:
-    myfile.write('SemiHardTrip,' + str(tripletRank1) + ',' + str(tripletNormRank1) + '\n')
+    myfile.write('RandTripT,' + str(tripletRank1) + ',' + str(tripletNormRank1) + '\n')
+
+
+
+
+randRangeList = [1.0, 0.75, 0.5, 0.25, -1]
+
+for randRange in randRangeList:
+    # Triplet Network with hard triplets
+    base_network2 = create_base_network(input_shape)
+
+    for i in range(0,len(base_network.layers)):
+        base_network2.layers[i].set_weights(base_network.layers[i].get_weights())
+
+    modelRandTriplet2 = create_triplet_network(input_shape, base_network2)
+    #plot_model(modelRandTriplet2, to_file='SemiHardTripletNetwork.png', show_shapes='True')
+
+    epochs = 3
+    learningRate = 0.002
+    beta1 = 0.9
+    beta2 = 0.999
+    modelRandTriplet2.compile(loss=tripletLoss, optimizer=Adam(lr=learningRate, beta_1=beta1, beta_2=beta2), metrics=[tripletAccuracy])
+    import matplotlib.pyplot as plt
+    bSize = 100
+    training_generator = DataGenerator(x_train, y_train, num_classes, base_network2, bSize, True, True, randRange)
+
+    modelRandTriplet2.fit_generator(generator=training_generator,
+                steps_per_epoch=training_generator.__len__(),
+                epochs = epochs,
+                use_multiprocessing=False, shuffle=True)
+
+    tripletRank1 = GetRank1Accuracy(probe, pLabel, gallery, gLabel, galleryClr, base_network2, saveIdx=-1, saveFigName="SemiHardTrip%.1f.png" % randRange, normalize = False)
+    tripletNormRank1 = GetRank1Accuracy(probe, pLabel, gallery, gLabel, galleryClr, base_network2, saveIdx=-1, saveFigName="SemiHardTripNorm%.1f.png" % randRange, normalize = True)
+
+    trainFeat = GetFeatMatrix(x_train, base_network2, -1, False)
+    PlotResult(x_trainClr, trainFeat, False, "SemiHardTripTrain%.1f.png" % randRange)
+
+    print('\n\n' + str(tripletRank1) + ',' + str(tripletNormRank1))
+    with open("result.txt", "a") as myfile:
+        myfile.write('SemiHardTrip%.1f,' % randRange + str(tripletRank1) + ',' + str(tripletNormRank1) + '\n')
