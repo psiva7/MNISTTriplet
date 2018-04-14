@@ -163,12 +163,12 @@ for randRange in randRangeList:
                 epochs = epochs,
                 use_multiprocessing=False, shuffle=True)
 
-    tripletRank1 = GetRank1Accuracy(probe, pLabel, gallery, gLabel, galleryClr, base_network2, saveIdx=-1, saveFigName="SemiHardTrip%.1f.png" % randRange, normalize = False)
-    tripletNormRank1 = GetRank1Accuracy(probe, pLabel, gallery, gLabel, galleryClr, base_network2, saveIdx=-1, saveFigName="SemiHardTripNorm%.1f.png" % randRange, normalize = True)
+    tripletRank1 = GetRank1Accuracy(probe, pLabel, gallery, gLabel, galleryClr, base_network2, saveIdx=-1, saveFigName="SemiHardTrip%.2f.png" % randRange, normalize = False)
+    tripletNormRank1 = GetRank1Accuracy(probe, pLabel, gallery, gLabel, galleryClr, base_network2, saveIdx=-1, saveFigName="SemiHardTripNorm%.2f.png" % randRange, normalize = True)
 
     trainFeat = GetFeatMatrix(x_train, base_network2, -1, False)
-    PlotResult(x_trainClr, trainFeat, False, "SemiHardTripTrain%.1f.png" % randRange)
+    PlotResult(x_trainClr, trainFeat, False, "SemiHardTripTrain%.2f.png" % randRange)
 
     print('\n\n' + str(tripletRank1) + ',' + str(tripletNormRank1))
     with open("result.txt", "a") as myfile:
-        myfile.write('SemiHardTrip%.1f,' % randRange + str(tripletRank1) + ',' + str(tripletNormRank1) + '\n')
+        myfile.write('SemiHardTrip%.2f,' % randRange + str(tripletRank1) + ',' + str(tripletNormRank1) + '\n')
