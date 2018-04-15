@@ -73,6 +73,13 @@ with open("result.txt", "a") as myfile:
     myfile.write('ID,' + str(tripletRank1) + ',' + str(tripletNormRank1) + '\n')
 '''
 
+#************
+#************
+# Triplet test by setting useSemiHardPos and useSemiHardNeg to false in DataGenerator.
+# This will be used as initialization network for semi-hard triplets later.
+# This should in theory give exactly the same result as setting useSemiHardPos=False, useSemiHardNeg=False and topPCT=1.0 
+#************
+#************
 
 # Triplet Network with random triplets
 base_network = create_base_network(input_shape)
@@ -104,6 +111,12 @@ with open("result.txt", "a") as myfile:
     myfile.write('RandTrip,' + str(tripletRank1) + ',' + str(tripletNormRank1) + '\n')
 
 
+#************
+#************
+# We set useSemiHardPos=False, useSemiHardNeg=False and topPCT=1.0 tos see if this gives similar result to
+# settig useSemiHardPos=True and useSemiHardNeg=True (above test)
+#************
+#************
 
 # Triplet Network with random triplets
 base_networkT = create_base_network(input_shape)
@@ -136,6 +149,13 @@ with open("result.txt", "a") as myfile:
 
 
 
+#************
+#************
+# Using random initalized network we train for 3 epochs using semi-hard triplet mining. Where, semi-hard
+# triplets are selected in each batch by sorting distances to all negatives/postives and selecting randomly
+# a point in the hardest topPCT. If topPCT<=0 then the hardest sample is selected.
+#************
+#************
 
 randRangeList = [1.0, 0.75, 0.5, 0.25, -1]
 
